@@ -1,5 +1,5 @@
 docs:
-	@sourcedocs generate -a --min-acl private -r
+	@sourcedocs generate --min-acl private -r --spm-module GraphQLKit
 
 swiftlint:
 	@swiftlint --autocorrect

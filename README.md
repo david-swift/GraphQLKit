@@ -11,6 +11,10 @@
   <a href="https://github.com/david-swift/GraphQLKit-macOS/tree/main/Tests/GraphQLKitTest/GraphQLKitTest">
   Examples
   </a>
+  ·
+  <a href="Documentation/Reference/README.md">
+  Contributor Docs
+  </a>
 </p>
 
 _GraphQLKit_ allows creating GraphQL queries using a simple and “swifty” syntax. Instead of first defining what data to fetch and later looking for that data in the JSON you get from the API, _GraphQLKit_ combines both into one step. Additionally, you get many advanced features from Swift for building requests, such as loops, if/else-statements and references to variables, right in the DSL. Here is a basic example using [GraphQLZero][1]:
@@ -178,6 +182,7 @@ For mutations, use `mutation(mutations:getRequest:)` instead of `query(queries:g
 - [SwiftLint][15] for checking whether code style conventions are violated
 - [GitHub GraphQL API V4 client][16] as the design of `GraphQL` is inspired by the `GitHub` structure
 - The programming language [Swift][17]
+- [SourceDocs][18] used for generating the [docs][19]
 
 [1]:	https://graphqlzero.almansi.me
 [2]:	#Elements
@@ -196,3 +201,5 @@ For mutations, use `mutation(mutations:getRequest:)` instead of `query(queries:g
 [15]:	https://github.com/realm/SwiftLint
 [16]:	https://github.com/eneko/GitHub
 [17]:	https://github.com/apple/swift
+[18]:   https://github.com/SourceDocs/SourceDocs
+[19]:   Documentation/Reference/README.md
