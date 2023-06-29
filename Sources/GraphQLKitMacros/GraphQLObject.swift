@@ -80,7 +80,7 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
             if isValue {
                 return "\(name): ((\(type)) -> Void)?"
             } else if !arguments.isEmpty {
-                return "\(name): \(name.capitalized)?"
+                return "\(name): \(name.capitalized)Arguments?"
             } else if let matchArray {
                 return "\(name): \(matchArray).Fields?"
             } else {
@@ -232,7 +232,7 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
     /// - Parameter element: The element.
     /// - Returns: The structure.
     private static func getStruct(element: VariableInformation) throws -> StructDeclSyntax {
-        try StructDeclSyntax("public struct \(raw: element.name.capitalized)") {
+        try StructDeclSyntax("public struct \(raw: element.name.capitalized)Arguments") {
             for argument in element.arguments {
                 if let decl = VariableDeclSyntax(DeclSyntax(
                     stringLiteral: "public var \(argument.0) = \(argument.1)"
