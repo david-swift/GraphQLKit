@@ -190,7 +190,7 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
                 }
             } else {
                 if let decl = VariableDeclSyntax(DeclSyntax(
-                    stringLiteral: "public var get: \(element.type).Fields"
+                    stringLiteral: "public var get: \(element.parameterValueType)"
                 )) {
                     decl
                 } else {
@@ -225,10 +225,12 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
                 try IfExprSyntax("if let \(raw: element.name) = value.\(raw: element.name)") {
                     if element.isValue && element.arguments.isEmpty {
                         StmtSyntax(stringLiteral: "self.\(element.name)?(\(element.name))")
+                    } else if !element.arguments.isEmpty && element.isValue {
+                        StmtSyntax(stringLiteral: "self.\(element.name)?.get(\(element.name))")
+                    } else if !element.arguments.isEmpty && element.matchArray != nil {
+                        StmtSyntax(stringLiteral: "self.\(element.name)?.get.get(values: \(element.name))")
                     } else if !element.arguments.isEmpty && !element.isValue {
                         StmtSyntax(stringLiteral: "self.\(element.name)?.get.get(value: \(element.name))")
-                    } else if !element.arguments.isEmpty {
-                        StmtSyntax(stringLiteral: "self.\(element.name)?.get(\(element.name))")
                     } else if element.matchArray == nil {
                         StmtSyntax(stringLiteral: "self.\(element.name)?.get(value: \(element.name))")
                     } else {

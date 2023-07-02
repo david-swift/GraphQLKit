@@ -51,14 +51,30 @@ public struct VariableInformation {
 
     /// The actual parameter of a variable.
     var parameter: String {
+        "\(name): \(parameterType)?"
+    }
+
+    /// The type of a parameter of the variable.
+    var parameterType: String {
         if isValue && arguments.isEmpty {
-            return "\(name): ((\(type)) -> Void)?"
+            return "((\(type)) -> Void)"
         } else if !arguments.isEmpty {
-            return "\(name): \(name.capitalized)Arguments?"
+            return "\(name.capitalized)Arguments"
         } else if let matchArray {
-            return "\(name): \(matchArray).Fields?"
+            return "\(matchArray).Fields"
         } else {
-            return "\(name): \(type).Fields?"
+            return "\(type).Fields"
+        }
+    }
+
+    /// The type of the get variable in the arguments structure.
+    var parameterValueType: String {
+        if !arguments.isEmpty && isValue {
+            return "((\(type)) -> Void)"
+        } else if !isValue, let matchArray {
+            return "\(matchArray).Fields"
+        } else {
+            return "\(type).Fields"
         }
     }
 
