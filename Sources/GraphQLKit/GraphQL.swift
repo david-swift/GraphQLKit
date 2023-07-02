@@ -58,16 +58,18 @@ public struct GraphQL {
     /// - Parameters:
     ///   - queries: The queries.
     ///   - getRequest: A manual conversion from the URL data to the URL request. In many cases, you can omit it.
+    ///   - editRequest: Edit the url request before the session is being started.
     public func query(
         @ArrayBuilder<Query> queries: () -> [any Query],
-        getRequest: ((URL, String) -> URLRequest)? = nil
+        getRequest: ((URL, String) -> URLRequest)? = nil,
+        editRequest: (inout URLRequest) -> Void = { _ in }
     ) async throws {
         var data = "query {"
         for query in queries() {
             data.append(query.string)
         }
         data.append("}")
-        let output = try await getAsync(data: data, getRequest: getRequest)
+        let output = try await getAsync(data: data, getRequest: getRequest, editRequest: editRequest)
         if let json = try JSON(data: output)["data"].dictionary {
             for query in queries() {
                 try query.get(data: json)
@@ -97,16 +99,18 @@ public struct GraphQL {
     /// - Parameters:
     ///   - mutations: The mutations.
     ///   - getRequest: A manual conversion from the URL data to the URL request. In many cases, you can omit it.
+    ///   - editRequest: Edit the url request before the session is being started.
     public func mutation(
         @ArrayBuilder<Mutation> mutations: () -> [any Mutation],
-        getRequest: ((URL, String) -> URLRequest)? = nil
+        getRequest: ((URL, String) -> URLRequest)? = nil,
+        editRequest: (inout URLRequest) -> Void = { _ in }
     ) async throws {
         var data = "mutation {"
         for mutation in mutations() {
             data.append(mutation.string)
         }
         data.append("}")
-        let output = try await getAsync(data: data, getRequest: getRequest)
+        let output = try await getAsync(data: data, getRequest: getRequest, editRequest: editRequest)
         if let json = try JSON(data: output)["data"].dictionary {
             for mutation in mutations() {
                 try mutation.get(data: json)
@@ -118,10 +122,15 @@ public struct GraphQL {
     /// - Parameters:
     ///   - data: The query or mutation data.
     ///   - getRequest: The custom URL & data to a URL request conversion.
+    ///   - editRequest: Edit the URL request before the session starts.
     /// - Returns: The data.
-    func getAsync(data: String, getRequest: ((URL, String) -> URLRequest)? = nil) async throws -> Data {
+    func getAsync(
+        data: String,
+        getRequest: ((URL, String) -> URLRequest)? = nil,
+        editRequest: (inout URLRequest) -> Void
+    ) async throws -> Data {
         try await withCheckedThrowingContinuation { continuation in
-            try? getData(data: data, getRequest: getRequest) { response, error in
+            try? getData(data: data, getRequest: getRequest, editRequest: editRequest) { response, error in
                 if let response {
                     continuation.resume(returning: response)
                 } else {
@@ -135,10 +144,12 @@ public struct GraphQL {
     /// - Parameters:
     ///   - data: The query or mutation data.
     ///   - getRequest: The custom URL & data to a URL request conversion.
+    ///   - editRequest: Edit the URL request before the session starts.
     ///   - completion: The completion.
     func getData(
         data: String,
         getRequest: ((URL, String) -> URLRequest)? = nil,
+        editRequest: (inout URLRequest) -> Void,
         completion: @escaping (Data?, Error?) -> Void
     ) throws {
         guard let url = URL(string: url) else {
@@ -152,6 +163,7 @@ public struct GraphQL {
             request.httpMethod = "POST"
             request.httpBody = try JSONEncoder().encode(Request(query: data))
         }
+        editRequest(&request)
         let session = URLSession(configuration: .default, delegate: nil, delegateQueue: .init())
         let task = session.dataTask(with: request) { data, _, error in
             if let data {

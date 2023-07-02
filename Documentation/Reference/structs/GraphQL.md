@@ -33,12 +33,13 @@ Initialize
 | ---- | ----------- |
 | url | The API’s URL. |
 
-### `query(queries:getRequest:)`
+### `query(queries:getRequest:editRequest:)`
 
 ```swift
 public func query(
     @ArrayBuilder<Query> queries: () -> [any Query],
-    getRequest: ((URL, String) -> URLRequest)? = nil
+    getRequest: ((URL, String) -> URLRequest)? = nil,
+    editRequest: (inout URLRequest) -> Void = { _ in }
 ) async throws
 ```
 
@@ -61,6 +62,7 @@ by calling ``query(queries:getRequest:)`` instead of omitting `getRequest`.
 - Parameters:
   - queries: The queries.
   - getRequest: A manual conversion from the URL data to the URL request. In many cases, you can omit it.
+  - editRequest: Edit the url request before the session is being started.
 
 #### Parameters
 
@@ -68,13 +70,15 @@ by calling ``query(queries:getRequest:)`` instead of omitting `getRequest`.
 | ---- | ----------- |
 | queries | The queries. |
 | getRequest | A manual conversion from the URL data to the URL request. In many cases, you can omit it. |
+| editRequest | Edit the url request before the session is being started. |
 
-### `mutation(mutations:getRequest:)`
+### `mutation(mutations:getRequest:editRequest:)`
 
 ```swift
 public func mutation(
     @ArrayBuilder<Mutation> mutations: () -> [any Mutation],
-    getRequest: ((URL, String) -> URLRequest)? = nil
+    getRequest: ((URL, String) -> URLRequest)? = nil,
+    editRequest: (inout URLRequest) -> Void = { _ in }
 ) async throws
 ```
 
@@ -100,6 +104,7 @@ by calling ``mutation(mutations:getRequest:)`` instead of omitting `getRequest`.
 - Parameters:
   - mutations: The mutations.
   - getRequest: A manual conversion from the URL data to the URL request. In many cases, you can omit it.
+  - editRequest: Edit the url request before the session is being started.
 
 #### Parameters
 
@@ -107,17 +112,23 @@ by calling ``mutation(mutations:getRequest:)`` instead of omitting `getRequest`.
 | ---- | ----------- |
 | mutations | The mutations. |
 | getRequest | A manual conversion from the URL data to the URL request. In many cases, you can omit it. |
+| editRequest | Edit the url request before the session is being started. |
 
-### `getAsync(data:getRequest:)`
+### `getAsync(data:getRequest:editRequest:)`
 
 ```swift
-func getAsync(data: String, getRequest: ((URL, String) -> URLRequest)? = nil) async throws -> Data
+func getAsync(
+    data: String,
+    getRequest: ((URL, String) -> URLRequest)? = nil,
+    editRequest: (inout URLRequest) -> Void
+) async throws -> Data
 ```
 
 Execute a query asynchronously.
 - Parameters:
   - data: The query or mutation data.
   - getRequest: The custom URL & data to a URL request conversion.
+  - editRequest: Edit the URL request before the session starts.
 - Returns: The data.
 
 #### Parameters
@@ -126,13 +137,15 @@ Execute a query asynchronously.
 | ---- | ----------- |
 | data | The query or mutation data. |
 | getRequest | The custom URL & data to a URL request conversion. |
+| editRequest | Edit the URL request before the session starts. |
 
-### `getData(data:getRequest:completion:)`
+### `getData(data:getRequest:editRequest:completion:)`
 
 ```swift
 func getData(
     data: String,
     getRequest: ((URL, String) -> URLRequest)? = nil,
+    editRequest: (inout URLRequest) -> Void,
     completion: @escaping (Data?, Error?) -> Void
 ) throws
 ```
@@ -141,6 +154,7 @@ Get the data using a completion handler.
 - Parameters:
   - data: The query or mutation data.
   - getRequest: The custom URL & data to a URL request conversion.
+  - editRequest: Edit the URL request before the session starts.
   - completion: The completion.
 
 #### Parameters
@@ -149,4 +163,5 @@ Get the data using a completion handler.
 | ---- | ----------- |
 | data | The query or mutation data. |
 | getRequest | The custom URL & data to a URL request conversion. |
+| editRequest | Edit the URL request before the session starts. |
 | completion | The completion. |
