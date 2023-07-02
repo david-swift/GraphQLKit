@@ -162,6 +162,7 @@ public struct GraphQL {
             request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.httpBody = try JSONEncoder().encode(Request(query: data))
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         editRequest(&request)
         let session = URLSession(configuration: .default, delegate: nil, delegateQueue: .init())
