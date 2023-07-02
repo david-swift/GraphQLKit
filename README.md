@@ -108,7 +108,7 @@ type User {
 }                      
 ```
 
-There are different types of children. Children without any wrapper are other GraphQL objects. In queries and mutations, it can be configured which of their children to return. Children marked with `@Value` are types without any children, normally strings, numbers, etc. Children with `@Arguments(_:)` are types with arguments that behave almost like a query in a query. 
+There are different types of children. Children without any wrapper are other GraphQL objects. In queries and mutations, it can be configured which of their children to return. Children marked with `@Value` are types without any children, normally strings, numbers, etc. Children with `@Arguments(_:)` are types with arguments that behave almost like a query in a query. Sometimes, you will need both `@Value` and `@Arguments(_:)` for a single child.
 
 Note that every type is optional, as every child type can be omitted in the query or mutation and is therefore not contained in the returned JSON.
 

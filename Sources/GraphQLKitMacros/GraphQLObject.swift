@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import RegexBuilder
 import SwiftSyntax
 import SwiftSyntaxMacros
 
@@ -30,67 +29,6 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
             case .syntaxError:
                 return "Check whether you are using the type the macro the right way. If you are, report a bug."
             }
-        }
-
-    }
-
-    /// Informatino about a variable.
-    private struct VariableInformation {
-
-        /// The capture for the array type regex.
-        static let capture = Capture(OneOrMore(.anyNonNewline))
-        /// Check whether a type is an array.
-        static let arrayType = Regex {
-            ChoiceOf {
-                Regex {
-                    "Array<"
-                    capture
-                    ">"
-                }
-                Regex {
-                    "["
-                    capture
-                    "]"
-                }
-            }
-        }
-
-        /// The variable's name.
-        var name: String
-        /// The variable's type.
-        var type: String
-        /// Whether the variable has not got fields.
-        var isValue: Bool
-        /// The variable's arguments.
-        var arguments: [(String, String)]
-
-        /// The matches of the array regex if it is an array.
-        var matchArray: Substring? {
-            let match = type.firstMatch(of: Self.arrayType)?.output
-            return match?.1 != nil ? match?.1 : match?.2
-        }
-
-        /// The simplest possible parameter using "name: type".
-        var simpleParameter: String {
-            "\(name): \(type)"
-        }
-
-        /// The actual parameter of a variable.
-        var parameter: String {
-            if isValue {
-                return "\(name): ((\(type)) -> Void)?"
-            } else if !arguments.isEmpty {
-                return "\(name): \(name.capitalized)Arguments?"
-            } else if let matchArray {
-                return "\(name): \(matchArray).Fields?"
-            } else {
-                return "\(name): \(type).Fields?"
-            }
-        }
-
-        /// The parameter as a variable definition.
-        var variable: String {
-            "var \(parameter)"
         }
 
     }
@@ -209,7 +147,7 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
         try VariableDeclSyntax("public var string: String") {
             VariableDeclSyntax(.var, name: .init(stringLiteral: "string: String = .init()"))
             for element in elements {
-                if element.isValue {
+                if element.isValue && element.arguments.isEmpty {
                     try IfExprSyntax("if \(raw: element.name) != nil") {
                         StmtSyntax(stringLiteral: "string.append(\" \(element.name)\")")
                     }
@@ -242,20 +180,37 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
                     throw GraphQLObjectError.syntaxError
                 }
             }
-            if let decl = VariableDeclSyntax(DeclSyntax(
-                stringLiteral: "public var get: (\(element.type)) -> Void"
-            )) {
-                decl
+            if element.isValue {
+                if let decl = VariableDeclSyntax(DeclSyntax(
+                    stringLiteral: "public var get: (\(element.type)) -> Void"
+                )) {
+                    decl
+                } else {
+                    throw GraphQLObjectError.syntaxError
+                }
             } else {
-                throw GraphQLObjectError.syntaxError
+                if let decl = VariableDeclSyntax(DeclSyntax(
+                    stringLiteral: "public var get: \(element.type).Fields"
+                )) {
+                    decl
+                } else {
+                    throw GraphQLObjectError.syntaxError
+                }
             }
-            try VariableDeclSyntax("public var string: String") {
-                StmtSyntax(stringLiteral: """
-                "\(arguments(elements: element.arguments.map { element in
-                    .init(name: element.0, type: .init(), isValue: false, arguments: [])
-                }))"
-                """)
-            }
+            try getStructString(element: element)
+        }
+    }
+
+    /// Get the string variable in a structure for a variable with arguments.
+    /// - Parameter element: The variable with arguments.
+    /// - Returns: The variable declaration.
+    private static func getStructString(element: VariableInformation) throws -> VariableDeclSyntax {
+        try VariableDeclSyntax("public var string: String") {
+            StmtSyntax(stringLiteral: """
+            "\(arguments(elements: element.arguments.map { element in
+                .init(name: element.0, type: .init(), isValue: false, arguments: [])
+            }))"
+            """)
         }
     }
 
@@ -268,8 +223,10 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
         try FunctionDeclSyntax("public func get(value: \(raw: type))") {
             for element in elements {
                 try IfExprSyntax("if let \(raw: element.name) = value.\(raw: element.name)") {
-                    if element.isValue {
+                    if element.isValue && element.arguments.isEmpty {
                         StmtSyntax(stringLiteral: "self.\(element.name)?(\(element.name))")
+                    } else if !element.arguments.isEmpty && !element.isValue {
+                        StmtSyntax(stringLiteral: "self.\(element.name)?.get.get(value: \(element.name))")
                     } else if !element.arguments.isEmpty {
                         StmtSyntax(stringLiteral: "self.\(element.name)?.get(\(element.name))")
                     } else if element.matchArray == nil {
@@ -288,23 +245,39 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
     ///   - variable: The variable.
     /// - Returns: Whether it is a wrapper.
     private static func isWrapper(_ wrapper: String, in variable: VariableDeclSyntax) -> Bool {
-        variable.attributes?.first?.description.contains(wrapper) ?? false
+        guard let attributes = variable.attributes else {
+            return false
+        }
+        for attribute in attributes where attribute.description.contains(wrapper) {
+            return true
+        }
+        return false
     }
 
     /// Get the arguments of a variable.
     /// - Parameter variable: The variable.
     /// - Returns: The arguments.
     private static func arguments(variable: VariableDeclSyntax) -> [(String, String)] {
-        if let dictionary = variable.attributes?.first?
-            .as(AttributeSyntax.self)?.argument?
-            .as(TupleExprElementListSyntax.self)?.first?.expression
-            .as(DictionaryExprSyntax.self)?.content
-            .as(DictionaryElementListSyntax.self) {
-            return dictionary.map { element in
-                var keyExpression = element.keyExpression.description
-                keyExpression.removeFirst()
-                keyExpression.removeLast()
-                return (keyExpression, element.valueExpression.description)
+        guard let attributes = variable.attributes else {
+            return []
+        }
+        for attribute in attributes {
+            guard let tupleElementList = attribute
+                .as(AttributeSyntax.self)?.argument?
+                .as(TupleExprElementListSyntax.self) else {
+                continue
+            }
+            for tupleElement in tupleElementList {
+                if let dictionary = tupleElement.expression
+                    .as(DictionaryExprSyntax.self)?.content
+                    .as(DictionaryElementListSyntax.self) {
+                    return dictionary.map { element in
+                        var keyExpression = element.keyExpression.description
+                        keyExpression.removeFirst()
+                        keyExpression.removeLast()
+                        return (keyExpression, element.valueExpression.description)
+                    }
+                }
             }
         }
         return []
@@ -344,7 +317,12 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
     /// - Returns: The string information.
     private static func argumentElementInformation(element: VariableInformation) throws -> IfExprSyntax {
         try IfExprSyntax("if let \(raw: element.name)") {
-            StmtSyntax(stringLiteral: "string.append(\" \(element.name)( \\(\(element.name).string)) \")")
+            let firstPart = "string.append(\" \(element.name)( \\(\(element.name).string)) "
+            if element.isValue {
+                StmtSyntax(stringLiteral: "\(firstPart)\")")
+            } else {
+                StmtSyntax(stringLiteral: "\(firstPart){ \\(\(element.name).get.string) }\")")
+            }
         }
     }
 }

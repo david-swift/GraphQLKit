@@ -34,6 +34,14 @@ let continentsQuery = Continents(fields: .init(
         name: .init(lang: "en") { print($0) }
     )
 ))
+/// A mutation for testing the GraphQLZero API
+let createAlbum = CreateAlbum(input: .init(
+    title: "Hi",
+    userId: "1"
+), fields: .init(
+    id: { print($0) },
+    title: { print($0) }
+))
 
 Task {
     do {
@@ -48,18 +56,17 @@ Task {
         try await GraphQL(url: "https://graphqlzero.almansi.me/api").query {
             UserQuery(id: "1", fields: .init(
                 id: { id = $0 },
-                name: { name = $0 }
+                name: { name = $0 },
+                posts: .init(get: .init(
+                    data: .init(
+                        title: { print($0) }
+                    )
+                ))
             ))
         }
         print("ID: \(id), NAME: \(name)")
         try await GraphQL(url: "https://graphqlzero.almansi.me/api").mutation {
-            CreateAlbum(input: .init(
-                title: "Hi",
-                userId: "1"
-            ), fields: .init(
-                id: { print($0) },
-                title: { print($0) }
-            ))
+            createAlbum
         }
     } catch {
         print(error)
