@@ -17,7 +17,7 @@ public macro GraphQLMutation() = #externalMacro(module: "GraphQLKitMacros", type
 
 /// A macro that converts a class into a GraphQL query.
 @attached(conformance)
-@attached(member, names: named(string), named(get))
+@attached(member, names: named(string), named(init), named(get))
 public macro GraphQLQuery() = #externalMacro(module: "GraphQLKitMacros", type: "GraphQLQuery")
 
 /// Add arguments to a value type.

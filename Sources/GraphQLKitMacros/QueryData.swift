@@ -43,6 +43,8 @@ enum QueryData {
         var name: String
         /// The variable's type.
         var type: String
+        /// The variable's default value.
+        var value: String?
         /// Whether it is a static variable.
         var isStatic: Bool
 
@@ -73,6 +75,7 @@ enum QueryData {
                     name: info.pattern.description,
                     type: (info.typeAnnotation?.type.description ?? "String")
                         .trimmingCharacters(in: .whitespacesAndNewlines),
+                    value: info.initializer?.value.description,
                     isStatic: element.1 ?? false
                 )
             }
@@ -80,7 +83,8 @@ enum QueryData {
         }
         let string = try getString(elements: elements)
         let get = try getGetFunction(elements: elements)
-        return [.init(string), .init(get)]
+        let initializer = try getInit(elements: elements)
+        return [.init(string), .init(get), .init(initializer)]
     }
 
     /// Get the elements string.
@@ -145,6 +149,32 @@ enum QueryData {
                     }
                 }
             })
+        }
+    }
+
+    /// Get the initializer.
+    /// - Parameter elements: The variables.
+    /// - Returns: The initializer.
+    private static func getInit(elements: [VariableInformation]) throws -> InitializerDeclSyntax {
+        var (field, fields) = try filter(elements: elements)
+        field.type = "\(field.type).Fields"
+        fields.append(field)
+        var arguments = ""
+        for field in fields {
+            if let value = field.value {
+                arguments.append("\(field.name): \(field.type) = \(value), ")
+            } else {
+                arguments.append("\(field.name): \(field.type), ")
+            }
+        }
+        let commaSpaceCount = 2
+        if arguments.count >= commaSpaceCount {
+            arguments.removeLast(commaSpaceCount)
+        }
+        return try InitializerDeclSyntax("public init(\(raw: arguments))") {
+            for field in fields {
+                StmtSyntax(stringLiteral: "self.\(field.name) = \(field.name)")
+            }
         }
     }
 
