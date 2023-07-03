@@ -64,6 +64,8 @@ try await GraphQL(url: "https://graphqlzero.almansi.me/api").query {
 ### Transfer the API’s Data Structure
 The first step for creating type-safe GraphQL queries and mutations in Swift is transferring the API’s types. 
 
+I recommend using [GraphQL Viewer][6] for automatically generating the type definitions. If you prefer transferring it manually, follow these instructions.    
+
 #### Create a Query Type
 Create a query using `@GraphQLQuery`:
 
@@ -172,34 +174,35 @@ For mutations, use `mutation(mutations:getRequest:)` instead of `query(queries:g
 ## Thanks
 
 ### Dependencies
-- [SwiftSyntax][6] licensed under the [Apache License 2.0][7]
-- [SwiftyJSON][8] licensed under the [MIT license][9]
-- [SwiftLintPlugin][10] licensed under the [MIT license][11]
-- [ColibriComponents][12] licensed under the [MIT license][13]
+- [SwiftSyntax][7] licensed under the [Apache License 2.0][8]
+- [SwiftyJSON][9] licensed under the [MIT license][10]
+- [SwiftLintPlugin][11] licensed under the [MIT license][12]
+- [ColibriComponents][13] licensed under the [MIT license][14]
 
 ### Other Thanks
-- The [contributors][14]
-- [SwiftLint][15] for checking whether code style conventions are violated
-- [GitHub GraphQL API V4 client][16] as the design of `GraphQL` is inspired by the `GitHub` structure
-- The programming language [Swift][17]
-- [SourceDocs][18] used for generating the [docs][19]
+- The [contributors][15]
+- [SwiftLint][16] for checking whether code style conventions are violated
+- [GitHub GraphQL API V4 client][17] as the design of `GraphQL` is inspired by the `GitHub` structure
+- The programming language [Swift][18]
+- [SourceDocs][19] used for generating the [docs][20]
 
 [1]:	https://graphqlzero.almansi.me
 [2]:	#Elements
 [3]:	#Installation
 [4]:	#Usage
 [5]:	#Thanks
-[6]:	https://github.com/apple/swift-syntax
-[7]:	https://github.com/apple/swift-syntax/blob/main/LICENSE.txt
-[8]:	https://github.com/SwiftyJSON/SwiftyJSON
-[9]:	https://github.com/SwiftyJSON/SwiftyJSON/blob/master/LICENSE
-[10]:	https://github.com/lukepistrol/SwiftLintPlugin
-[11]:	https://github.com/lukepistrol/SwiftLintPlugin/blob/main/LICENSE
-[12]:	https://github.com/david-swift/ColibriComponents-macOS
-[13]:	https://github.com/david-swift/ColibriComponents-macOS/blob/main/LICENSE.md
-[14]:	Contributors.md
-[15]:	https://github.com/realm/SwiftLint
-[16]:	https://github.com/eneko/GitHub
-[17]:	https://github.com/apple/swift
-[18]:   https://github.com/SourceDocs/SourceDocs
-[19]:   Documentation/Reference/README.md
+[6]:	https://github.com/david-swift/GraphQL-Viewer-macOS
+[7]:	https://github.com/apple/swift-syntax
+[8]:	https://github.com/apple/swift-syntax/blob/main/LICENSE.txt
+[9]:	https://github.com/SwiftyJSON/SwiftyJSON
+[10]:	https://github.com/SwiftyJSON/SwiftyJSON/blob/master/LICENSE
+[11]:	https://github.com/lukepistrol/SwiftLintPlugin
+[12]:	https://github.com/lukepistrol/SwiftLintPlugin/blob/main/LICENSE
+[13]:	https://github.com/david-swift/ColibriComponents-macOS
+[14]:	https://github.com/david-swift/ColibriComponents-macOS/blob/main/LICENSE.md
+[15]:	Contributors.md
+[16]:	https://github.com/realm/SwiftLint
+[17]:	https://github.com/eneko/GitHub
+[18]:	https://github.com/apple/swift
+[19]:	https://github.com/SourceDocs/SourceDocs
+[20]:	Documentation/Reference/README.md
