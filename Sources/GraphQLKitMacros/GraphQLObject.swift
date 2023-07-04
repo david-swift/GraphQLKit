@@ -16,10 +16,8 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
     /// Errors for the ``GraphQLObject``.
     enum GraphQLObjectError: CustomStringConvertible, Error {
 
-        /// Only applicable to classes.
-        case onlyApplicableToClasses
-        /// A syntax error occured.
-        case syntaxError
+        /// An error.
+        case onlyApplicableToClasses, syntaxError
 
         /// A readable description of the error.
         var description: String {
@@ -30,7 +28,6 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
                 return "Check whether you are using the type the macro the right way. If you are, report a bug."
             }
         }
-
     }
 
     /// Expanding the conformance of the type.
@@ -115,8 +112,7 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
                     StmtSyntax(stringLiteral: "self.\(element.name) = \(element.name)")
                 }
             }
-            try stringDeclaration(elements: elements)
-            try getFunction(elements: elements, type: type)
+            try stringDeclaration(elements: elements); try getFunction(elements: elements, type: type)
             for element in elements where !element.arguments.isEmpty {
                 try getStruct(element: element)
             }
@@ -197,7 +193,29 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
                     throw GraphQLObjectError.syntaxError
                 }
             }
-            try getStructString(element: element)
+            try getStructString(element: element); try getStructInitializer(element: element)
+        }
+    }
+
+    /// Get the initializer for an arguments structure.
+    /// - Parameter element: The variable with the arguments.
+    /// - Returns: The initializer.
+    private static func getStructInitializer(element: VariableInformation) throws -> InitializerDeclSyntax {
+        var initializer = ""
+        for argument in element.arguments {
+            var type = argument.1
+            let bracketsCount = 2
+            if type.count >= bracketsCount {
+                type.removeLast(bracketsCount)
+            }
+            initializer.append("\(argument.0): \(type) = \(argument.1), ")
+        }
+        initializer.append("get: \(element.initializerValueType)")
+        return try InitializerDeclSyntax("public init(\(raw: initializer))") {
+            for argument in element.arguments {
+                StmtSyntax("self.\(raw: argument.0) = \(raw: argument.0)")
+            }
+            StmtSyntax("self.get = get")
         }
     }
 
@@ -299,9 +317,7 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
                 string.append("\(simple ? element.simpleParameter : element.parameter),")
             }
         }
-        if !string.isEmpty {
-            string.removeLast()
-        }
+        if !string.isEmpty { string.removeLast() }
         return string
     }
 

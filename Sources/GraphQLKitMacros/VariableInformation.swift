@@ -35,7 +35,7 @@ public struct VariableInformation {
     var type: String
     /// Whether the variable has not got fields.
     var isValue: Bool
-    /// The variable's arguments.
+    /// The variable's arguments (name, default value).
     var arguments: [(String, String)]
 
     /// The matches of the array regex if it is an array.
@@ -75,6 +75,15 @@ public struct VariableInformation {
             return "\(matchArray).Fields"
         } else {
             return "\(type).Fields"
+        }
+    }
+
+    /// The parameter for the arguments initializer.
+    var initializerValueType: String {
+        if !arguments.isEmpty && isValue {
+            return "@escaping \(parameterValueType)"
+        } else {
+            return parameterValueType
         }
     }
 
