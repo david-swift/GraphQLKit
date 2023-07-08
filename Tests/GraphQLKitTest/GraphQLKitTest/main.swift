@@ -57,11 +57,12 @@ Task {
             UserQuery(id: "1", fields: .init(
                 id: { id = $0 },
                 name: { name = $0 },
-                posts: .init(get: .init(
-                    data: .init(
-                        title: { print($0) }
+                posts: .init(
+                    options: .init(),
+                    get: .init(
+                        data: .init(title: { print($0) })
                     )
-                ))
+                )
             ))
         }
         print("ID: \(id), NAME: \(name)")

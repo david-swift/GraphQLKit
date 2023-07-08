@@ -22,7 +22,7 @@ public macro GraphQLQuery() = #externalMacro(module: "GraphQLKitMacros", type: "
 
 /// Add arguments to a value type.
 @attached(accessor)
-public macro Arguments(_ args: [String: any GraphQLValueType]) = #externalMacro(
+public macro Arguments(_ args: [String: any GraphQLValueType.Type]) = #externalMacro(
     module: "GraphQLKitMacros",
     type: "Arguments"
 )

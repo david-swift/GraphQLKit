@@ -91,10 +91,16 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
     }
 
     /// Get the string description of elements.
-    /// - Parameter elements: The elements.
+    /// - Parameters:
+    ///   - elements: The elements.
+    ///   - brackets: Whether there are curly brackets around the arguments.
     /// - Returns: The description.
-    private static func getString(elements: [VariableInformation]) -> String {
-        "\"{\(arguments(elements: elements))}\""
+    private static func getString(elements: [VariableInformation], brackets: Bool = true) -> String {
+        if brackets {
+            return "\"{\(arguments(elements: elements))}\""
+        } else {
+            return "\"\(arguments(elements: elements))\""
+        }
     }
 
     /// Get the fields class.
@@ -169,7 +175,7 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
         try StructDeclSyntax("public struct \(raw: element.name.capitalized)Arguments") {
             for argument in element.arguments {
                 if let decl = VariableDeclSyntax(DeclSyntax(
-                    stringLiteral: "public var \(argument.0) = \(argument.1)"
+                    stringLiteral: "public var \(argument.0): \(argument.1)?"
                 )) {
                     decl
                 } else {
@@ -203,12 +209,7 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
     private static func getStructInitializer(element: VariableInformation) throws -> InitializerDeclSyntax {
         var initializer = ""
         for argument in element.arguments {
-            var type = argument.1
-            let bracketsCount = 2
-            if type.count >= bracketsCount {
-                type.removeLast(bracketsCount)
-            }
-            initializer.append("\(argument.0): \(type) = \(argument.1), ")
+            initializer.append("\(argument.0): \(argument.1)? = nil, ")
         }
         initializer.append("get: \(element.initializerValueType)")
         return try InitializerDeclSyntax("public init(\(raw: initializer))") {
@@ -223,12 +224,11 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
     /// - Parameter element: The variable with arguments.
     /// - Returns: The variable declaration.
     private static func getStructString(element: VariableInformation) throws -> VariableDeclSyntax {
-        try VariableDeclSyntax("public var string: String") {
-            StmtSyntax(stringLiteral: """
-            "\(arguments(elements: element.arguments.map { element in
-                .init(name: element.0, type: .init(), isValue: false, arguments: [])
-            }))"
-            """)
+        try .init("public var string: String") {
+            let elements: [VariableInformation] = element.arguments.map { key, value in
+                    .init(name: key, type: "\(value)?", isValue: true, arguments: [])
+            }
+            StmtSyntax(stringLiteral: getString(elements: elements, brackets: false))
         }
     }
 
@@ -284,9 +284,7 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
         for attribute in attributes {
             guard let tupleElementList = attribute
                 .as(AttributeSyntax.self)?.argument?
-                .as(TupleExprElementListSyntax.self) else {
-                continue
-            }
+                .as(TupleExprElementListSyntax.self) else { continue }
             for tupleElement in tupleElementList {
                 if let dictionary = tupleElement.expression
                     .as(DictionaryExprSyntax.self)?.content
@@ -295,12 +293,16 @@ public enum GraphQLObject: MemberMacro, ConformanceMacro {
                         var keyExpression = element.keyExpression.description
                         keyExpression.removeFirst()
                         keyExpression.removeLast()
-                        return (keyExpression, element.valueExpression.description)
+                        var type = element.valueExpression.description
+                        let selfLength = 5
+                        if type.count > selfLength {
+                            type.removeLast(selfLength)
+                        }
+                        return (keyExpression, type)
                     }
                 }
             }
-        }
-        return []
+        }; return []
     }
 
     /// Get the initializer.

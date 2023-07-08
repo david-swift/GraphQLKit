@@ -208,7 +208,7 @@ final class Album {
     @Value var id: String? = nil
     @Value var title: String? = nil
     var user: User?
-    @Arguments(["options": PageQueryOptions()])
+    @Arguments(["options": PageQueryOptions.self])
     var photos: PhotosPage? = nil
 
 }
@@ -224,11 +224,11 @@ final class User {
     @Value var phone: String? = nil
     @Value var website: String? = nil
     var company: Company?
-    @Arguments(["options": PageQueryOptions()])
+    @Arguments(["options": PageQueryOptions.self])
     var posts: PostsPage? = nil
-    @Arguments(["options": PageQueryOptions()])
+    @Arguments(["options": PageQueryOptions.self])
     var albums: AlbumsPage? = nil
-    @Arguments(["options": PageQueryOptions()])
+    @Arguments(["options": PageQueryOptions.self])
     var todos: TodosPage? = nil
 
 }
@@ -241,7 +241,7 @@ final class Address {
     @Value var city: String? = nil
     @Value var zipcode: String? = nil
     var geo: Geo?
-    @Arguments(["options": PageQueryOptions()])
+    @Arguments(["options": PageQueryOptions.self])
     var posts: PostsPage? = nil
 
 }
@@ -279,7 +279,7 @@ final class Post {
     @Value var title: String? = nil
     @Value var body: String? = nil
     var user: User?
-    @Arguments(["options": PageQueryOptions()])
+    @Arguments(["options": PageQueryOptions.self])
     var comments: CommentsPage? = nil
 
 }

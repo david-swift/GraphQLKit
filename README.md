@@ -93,7 +93,7 @@ final class User {
 
     var address: Address?
     @Value var id: String? = nil
-    @Arguments(["options": PageQueryOptions()])
+    @Arguments(["options": PageQueryOptions.self])
     var posts: PostsPage? = nil
 
 }

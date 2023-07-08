@@ -41,7 +41,7 @@ final class Country {
     @Value var emoji: String? = nil
     @Value var emojiU: String? = nil
     var languages: [Language]?
-    @Arguments(["lang": String()])
+    @Arguments(["lang": String.self])
     @Value var name: String? = nil
     @Value var native: String? = nil
     @Value var phone: String? = nil
