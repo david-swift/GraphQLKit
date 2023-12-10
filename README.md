@@ -1,3 +1,8 @@
+> [!NOTE]
+> This project is no longer maintained due to poor performance with large GraphQL APIs.
+> It was mainly an experiment for testing the new Swift macros.
+> I recommend taking a look at what [GraphQLSwift](https://github.com/GraphQLSwift) is doing.
+
 <p align="center">
   <img width="256" alt="GraphQLKit Icon" src="Icons/GraphQLKitIcon.png">
   <h1 align="center">GraphQLKit</h1>
